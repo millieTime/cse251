@@ -2,7 +2,7 @@
 Course: CSE 251 
 Lesson Week: 01
 File: assignment.py 
-Author: <Add name here>
+Author: Preston Millward
 
 Purpose: Drawing with Python Turtle
 
@@ -32,7 +32,6 @@ from cse251turtle import *
 import os, sys
 sys.path.append('../../code')   # Do not change the path.
 from cse251 import *
-
 
 def draw_square(tur, x, y, side, color='black'):
     """Draw Square"""
@@ -165,12 +164,31 @@ def run_with_threads(tur, log, main_turtle):
     # You need to use 4 threads where each thread concurrently drawing one type of shape.
     # You are free to change any functions in this code except main()
 
-    log.step_timer('All drawing commands have been created')
+    '''
+    NOTE:
+    I used four different threads all sharing the same turtle once and was met with spaghetti, so I
+    used lock.acquire and lock.release before and after the draw_?() within each draw_?s() function.
+    That gave me the kind of 'do some of these, then some of those, then more of these' result, but
+    didn't save me any time. So I generated THIS beast. >:) Saves me about 2 whole seconds on my
+    computer. 10% time decrease? Pretty good. Readability? not great. Efficiency and memory usage
+    took a hit as well, but I'm happy with what I learned haha.
+    '''
 
-    log.write(f'Number of Drawing Commands: {tur.get_command_count()}')
+    commandList = [(draw_squares, CSE251Turtle()), (draw_circles, CSE251Turtle()), (draw_triangles, CSE251Turtle()), (draw_rectangles, CSE251Turtle())]
+    threadList = []
+    for command, turtle in commandList:
+        threadList.append(thread := threading.Thread(target=command, args=(turtle,) ))
+        thread.start()
+    for thread in threadList:
+        thread.join()
+
+    log.step_timer('All drawing commands have been created')
+    log.write(f'Number of Drawing Commands: {tur.get_command_count() + sum([turtle.get_command_count() for _, turtle in commandList])}')
 
     # Play the drawing commands that were created
     tur.play_commands(main_turtle)
+    for _, turtle in commandList:
+        turtle.play_commands(main_turtle)
     log.stop_timer('Total drawing time')
     tur.clear()
 
