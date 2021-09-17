@@ -186,6 +186,7 @@ def method_1(log, tur, main_turtle):
         thread.join()
 
     log.step_timer('All drawing commands have been created')
+    tur.move(0, 0)
     log.write(f'Number of Drawing Commands: {tur.get_command_count()}')
 
     # Play the drawing commands that were created
@@ -201,6 +202,7 @@ def method_2(log, tur, main_turtle):
         thread.join()
 
     log.step_timer('All drawing commands have been created')
+    tur.move(0, 0)
     log.write('Number of Drawing Commands: '
               + str(tur.get_command_count() + sum([turtle.get_command_count() for _, turtle in commandList])))
 
@@ -222,7 +224,7 @@ def run_with_threads(tur, log, main_turtle):
     tur.move(0, 0)
 
 
-    #method_1(log, tur, main_turtle)
+    method_1(log, tur, main_turtle)
     '''
     NOTE:
     The above is what you're looking for. But since it didn't save me any time I generated THIS beast. >:) 
@@ -232,9 +234,9 @@ def run_with_threads(tur, log, main_turtle):
     I'd be very interested for you to try it and see whether I'm right about the time saving.
     And I think I am ;)
     '''
-    method_2(log, tur, main_turtle)
+    #method_2(log, tur, main_turtle)
     
-    
+
     log.stop_timer('Total drawing time')
     tur.clear()
 
@@ -258,7 +260,7 @@ def main():
     turtle251 = CSE251Turtle()
 
     # Test 1 - Drawing with no threads
-    #run_no_threads(turtle251, log, main_turtle)
+    run_no_threads(turtle251, log, main_turtle)
     
     main_turtle.clear()
 
