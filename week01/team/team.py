@@ -1,6 +1,6 @@
 """
 Course: CSE 251
-Lesson Week: 01 - Team Acvitiy
+Lesson Week: 01 - Team Activity
 File: team.py
 Author: Brother Comeau
 
@@ -9,7 +9,7 @@ Purpose: Find prime numbers
 Instructions:
 
 - Don't include any other Python packages or modules
-- Review team acvitiy details in I-Learn
+- Review team activity details in I-Learn
 
 """
 
@@ -45,6 +45,20 @@ def is_prime(n: int) -> bool:
     return True
 
 
+def test_range(start, range_count):
+    for i in range(start, start + range_count):
+        global prime_count
+        if is_prime(i):
+            prime_count += 1
+            #print(i, end=', ', flush=True)
+        
+def interleave(start, number_of_threads, end):
+    for i in range(start, end, number_of_threads):
+        global prime_count
+        if is_prime(i):
+            prime_count += 1
+            #print(i, end=", ", flush = True)
+
 if __name__ == '__main__':
     log = Log(show_terminal=True)
     log.start_timer()
@@ -54,16 +68,24 @@ if __name__ == '__main__':
     # TODO 3) change the program to divide the for loop into 10 threads
 
     start = 10000000000
-    range_count = 100000
-    for i in range(start, start + range_count):
-        if is_prime(i):
-            prime_count += 1
-            print(i, end=', ', flush=True)
+    range_count = 100_000
+    thread_count = 10
+    # for i in range(start, start + range_count):
+    #     if is_prime(i):
+    #         prime_count += 1
+    #         print(i, end=', ', flush=True)
+    threadRange = int(range_count / thread_count)
+    threadList = []
+    for thread_number in range(thread_count):
+        #thread = threading.Thread(target=test_range, args = (start + threadRange * thread_number, threadRange))
+        thread = threading.Thread(target = interleave, args=(start + thread_number, thread_count, start + range_count))
+        thread.start()
+        threadList.append(thread)
+    for thread in threadList:
+        thread.join()
     print(flush=True)
 
     # Should find 4306 primes
     log.write(f'Numbers processed = {numbers_processed}')
     log.write(f'Primes found      = {prime_count}')
     log.stop_timer('Total time')
-
-
