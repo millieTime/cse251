@@ -178,11 +178,11 @@ def run_no_threads(tur, log, main_turtle):
     tur.clear()
 
 def method_1(log, tur, main_turtle):
-    commandList = [draw_squares_locked, draw_circles_locked, draw_triangles_locked, draw_rectangles_locked]
-    threadList = [threading.Thread(target = command, args=(tur,)) for command in commandList]
-    for thread in threadList:
+    command_list = [draw_squares_locked, draw_circles_locked, draw_triangles_locked, draw_rectangles_locked]
+    thread_list = [threading.Thread(target = command, args=(tur,)) for command in command_list]
+    for thread in thread_list:
         thread.start()
-    for thread in threadList:
+    for thread in thread_list:
         thread.join()
 
     log.step_timer('All drawing commands have been created')
@@ -193,22 +193,22 @@ def method_1(log, tur, main_turtle):
     tur.play_commands(main_turtle)
 
 def method_2(log, tur, main_turtle):
-    commandList = [(draw_squares, CSE251Turtle()), (draw_circles, CSE251Turtle()),
+    command_list = [(draw_squares, CSE251Turtle()), (draw_circles, CSE251Turtle()),
                    (draw_triangles, CSE251Turtle()), (draw_rectangles, CSE251Turtle())]
-    threadList = [threading.Thread(target=command, args=(turtle,)) for command, turtle in commandList]
-    for thread in threadList:
+    thread_list = [threading.Thread(target=command, args=(turtle,)) for command, turtle in command_list]
+    for thread in thread_list:
         thread.start()
-    for thread in threadList:
+    for thread in thread_list:
         thread.join()
 
     log.step_timer('All drawing commands have been created')
     tur.move(0, 0)
     log.write('Number of Drawing Commands: '
-              + str(tur.get_command_count() + sum([turtle.get_command_count() for _, turtle in commandList])))
+              + str(tur.get_command_count() + sum([turtle.get_command_count() for _, turtle in command_list])))
 
     # Play the drawing commands that were created
     tur.play_commands(main_turtle)
-    for _, turtle in commandList:
+    for _, turtle in command_list:
         turtle.play_commands(main_turtle)
 
 
