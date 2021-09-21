@@ -32,7 +32,6 @@ from cse251turtle import *
 import os, sys
 sys.path.append('../../code')   # Do not change the path.
 from cse251 import *
-lock = threading.Lock()
 
 def draw_square(tur, x, y, side, color='black'):
     """Draw Square"""
@@ -100,7 +99,7 @@ def draw_squares(tur):
         for y in range(-300, 350, 200):
             draw_square(tur, x - 50, y + 50, 100)
 
-def draw_squares_locked(tur):
+def draw_squares_locked(tur, lock):
     """Draw a group of squares"""
     for x in range(-300, 350, 200):
         for y in range(-300, 350, 200):
@@ -114,7 +113,7 @@ def draw_circles(tur):
         for y in range(-300, 350, 200):
             draw_circle(tur, x, y-2, 50)
 
-def draw_circles_locked(tur):
+def draw_circles_locked(tur, lock):
     """Draw a group of circles"""
     for x in range(-300, 350, 200):
         for y in range(-300, 350, 200):
@@ -128,7 +127,7 @@ def draw_triangles(tur):
         for y in range(-300, 350, 200):
             draw_triangle(tur, x-30, y-30+10, 60)
 
-def draw_triangles_locked(tur):
+def draw_triangles_locked(tur, lock):
     """Draw a group of triangles"""
     for x in range(-300, 350, 200):
         for y in range(-300, 350, 200):
@@ -142,7 +141,7 @@ def draw_rectangles(tur):
         for y in range(-300, 350, 200):
             draw_rectangle(tur, x-10, y+5, 20, 15)
 
-def draw_rectangles_locked(tur):
+def draw_rectangles_locked(tur, lock):
     """Draw a group of Rectangles"""
     for x in range(-300, 350, 200):
         for y in range(-300, 350, 200):
@@ -178,8 +177,9 @@ def run_no_threads(tur, log, main_turtle):
     tur.clear()
 
 def method_1(log, tur, main_turtle):
+    lock = threading.Lock()
     command_list = [draw_squares_locked, draw_circles_locked, draw_triangles_locked, draw_rectangles_locked]
-    thread_list = [threading.Thread(target = command, args=(tur,)) for command in command_list]
+    thread_list = [threading.Thread(target = command, args=(tur, lock)) for command in command_list]
     for thread in thread_list:
         thread.start()
     for thread in thread_list:
@@ -227,7 +227,7 @@ def run_with_threads(tur, log, main_turtle):
     method_1(log, tur, main_turtle)
     '''
     NOTE:
-    The above is what you're looking for. But since it didn't save me any time I generated THIS beast. >:) 
+    The above is what you're looking for. But since it didn't save me any time I generated the following beast. >:) 
     Saves me about 2 whole seconds on my computer. 10% time decrease? Pretty good. Readability? not great. 
     Efficiency and memory usage took a hit as well, but I'm happy with what I learned haha!
 
