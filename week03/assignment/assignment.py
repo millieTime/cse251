@@ -3,7 +3,7 @@
 Course: CSE 251
 Lesson Week: 03
 File: assignment.py
-Author: <Your Name>
+Author: Preston Millward
 
 Purpose: Video Frame Processing
 
@@ -33,7 +33,7 @@ CPU_COUNT = mp.cpu_count() + 4
 
 # TODO Your final video need to have 300 processed frames.  However, while you are 
 # testing your code, set this much lower
-FRAME_COUNT = 20
+FRAME_COUNT = 300
 
 RED   = 0
 GREEN = 1
@@ -44,7 +44,7 @@ def create_new_frame(image_file, green_file, process_file):
     """ Creates a new image file from image_file and green_file """
 
     # this print() statement is there to help see which frame is being processed
-    print(f'{process_file[-7:-4]}', end=',', flush=True)
+    print(f'{process_file[-7:-4]}', end=', ', flush=True)
 
     image_img = Image.open(image_file)
     green_img = Image.open(green_file)
@@ -64,12 +64,30 @@ def create_new_frame(image_file, green_file, process_file):
 
 # TODO add any functions to need here
 
+def process_images(file_no):
+  image_file = rf'elephant/image{file_no:03d}.png'
+  green_file = rf'green/image{file_no:03d}.png'
+  process_file = rf'processed/image{file_no:03d}.png'
+  create_new_frame(image_file, green_file, process_file)
+
+def process_rickroll(file_no):
+  image_file = rf'rickroll/image{file_no:03d}.png'
+  green_file = rf'green/image{file_no:03d}.png'
+  process_file = rf'processed/image{file_no:03d}.png'
+  create_new_frame(image_file, green_file, process_file)
+
 
 
 if __name__ == '__main__':
-    # single_file_processing(300)
-    # print('cpu_count() =', cpu_count())
 
+    processing_function = process_images
+    do_rickroll = input("Do Rickroll? (y/n): ")
+    if do_rickroll == 'y':
+      if os.path.exists('rickroll'):
+        processing_function = process_rickroll
+      else:
+        print("You do not have the necessary files to rickroll, but this program is optimized \
+              for such a task. Contact Preston for instructions to do so. ;)")
     all_process_time = timeit.default_timer()
     log = Log(show_terminal=True)
 
@@ -78,20 +96,14 @@ if __name__ == '__main__':
 
     # TODO Process all frames trying 1 cpu, then 2, then 3, ... to CPU_COUNT
     #      add results to xaxis_cpus and yaxis_times
-
-
-    # sample code: remove before submitting  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    # process one frame #10
-    image_number = 10
-
-    image_file = rf'elephant/image{image_number:03d}.png'
-    green_file = rf'green/image{image_number:03d}.png'
-    process_file = rf'processed/image{image_number:03d}.png'
-
-    start_time = timeit.default_timer()
-    create_new_frame(image_file, green_file, process_file)
-    print(f'\nTime To Process all images = {timeit.default_timer() - start_time}')
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    for cpus in range(1, CPU_COUNT + 1):
+      xaxis_cpus.append(cpus)
+      with mp.Pool(cpus) as p:
+        start_time = timeit.default_timer()
+        p.map(processing_function, range(1, FRAME_COUNT + 1))
+        time = timeit.default_timer() - start_time
+        yaxis_times.append(time)
+        log.write(f'\nTime for {FRAME_COUNT} frames using {cpus} process(es): {time}')
 
 
     log.write(f'Total Time for ALL processing: {timeit.default_timer() - all_process_time}')

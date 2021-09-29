@@ -12,6 +12,7 @@ Instructions:
 
 """
 
+from ctypes import c_bool
 import random
 from datetime import datetime, timedelta
 import threading
@@ -21,11 +22,14 @@ import numpy as np
 import string
 import copy
 import time
+import json
 
 # Include cse 251 common Python files
 import os, sys
 sys.path.append('../../code')   # Do not change the path.
 from cse251 import *
+
+CPU_COUNT = mp.cpu_count()
 
 words = ['BOOKMARK', 'SURNAME', 'RETHINKING', 'HEAVY', 'IRONCLAD', 'HAPPY', 
         'JOURNAL', 'APPARATUS', 'GENERATOR', 'WEASEL', 'OLIVE', 
@@ -65,8 +69,8 @@ class Board():
     def __init__(self, size):
         """ Create the instance and the board arrays """
         self.size = size
-        self.board = [['.' for _ in range(size)] for _ in range(size)] 
-        self.highlighting = [[False for _ in range(size)] for _ in range(size)] 
+        self.board = [['.' for _ in range(size)] for _ in range(size)]
+        self.highlighting = [[False for _ in range(size)] for _ in range(size)]
 
     def _word_fits(self, word, row, col, direction):
         """ Helper function: Fit a word in the board """
@@ -103,7 +107,11 @@ class Board():
 
     def highlight(self, row, col, on=True):
         """ Turn on/off highlighting for a letter """
+        # pid = os.getpid()
         self.highlighting[row][col] = on
+        # with open(f"highlight_maps/{pid}.txt", 'w') as outfile:
+        #     json.dump(self.highlighting, outfile)
+            
 
     def get_size(self):
         """ Return the size of the board """
@@ -139,6 +147,11 @@ class Board():
             else:
                 self.highlighting = copy.deepcopy(highlight_copy)
                 return False
+
+        pid = os.getpid()
+        with open(f"highlight_maps/{pid}.txt", 'w') as outfile:
+            json.dump(self.highlighting, outfile)
+        
         return True
 
     def find_word(self, word):
@@ -153,17 +166,42 @@ class Board():
 
 
 def main():
-    board = Board(25)
+    print("Does not highlight all the words. Possibly only writes the last word each process found.")
+    time.sleep(1)
+    size = 25
+    board = Board(size)
     board.place_words(words)
     print('Board with placed words')
     board.display()
     board.fill_in_dots()
     board.display()
 
+    if not os.path.exists('highlight_maps'):
+        os.makedirs('highlight_maps')
+    else:
+        for f in os.listdir('highlight_maps'):
+            os.remove(os.path.join('highlight_maps', f))
+
+
     start = time.perf_counter()
-    for word in words:
-        if not board.find_word(word):
-            print(f'Error: Could not find "{word}"')
+    with mp.Pool(CPU_COUNT) as p:
+        p.map(board.find_word, words)
+        
+    # Grab each file in highlight_maps and OR them together.
+    master_highlights = board.highlighting
+    for file in os.listdir('highlight_maps'):
+        with open(rf'highlight_maps/{file}', 'r') as infile:
+            highlight_array = json.load(infile)
+            for row in range(len(highlight_array)):
+                for col in range(len(highlight_array[0])):
+                    master_highlights[row][col] = master_highlights[row][col] or highlight_array[row][col]
+
+
+    board.highlighting = master_highlights
+
+    # for word in words:
+    #     if not board.find_word(word):
+    #         print(f'Error: Could not find "{word}"')
     total_time = time.perf_counter() - start
 
     board.display()
