@@ -147,7 +147,6 @@ class Wrapper(mp.Process):
             sleep the required amount
         '''
 
-
 def display_final_boxes(filename, log):
     """ Display the final boxes file to the log file -  Don't change """
     if os.path.exists(filename):
