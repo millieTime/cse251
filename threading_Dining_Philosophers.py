@@ -1,0 +1,132 @@
+"""
+Course: CSE 251
+Lesson Week: 09
+File: team1.py
+
+Purpose: team activity - Dining philosophers problem
+
+Problem statement
+
+Five silent philosophers sit at a round table with bowls of spaghetti. Forks
+are placed between each pair of adjacent philosophers.
+
+Each philosopher must alternately think and eat. However, a philosopher can
+only eat spaghetti when they have both left and right forks. Each fork can be
+held by only one philosopher and so a philosopher can use the fork only if it
+is not being used by another philosopher. After an individual philosopher
+finishes eating, they need to put down both forks so that the forks become
+available to others. A philosopher can only take the fork on their right or
+the one on their left as they become available and they cannot start eating
+before getting both forks.  When a philosopher is finished eating, they think 
+for a little while.
+
+Eating is not limited by the remaining amounts of spaghetti or stomach space;
+an infinite supply and an infinite demand are assumed.
+
+The problem is how to design a discipline of behavior (a concurrent algorithm)
+such that no philosopher will starve
+
+Instructions:
+
+        **************************************************
+        ** DO NOT search for a solution on the Internet **
+        ** your goal is not to copy a solution, but to  **
+        ** work out this problem.                       **
+        **************************************************
+
+- You have Locks and Semaphores that you can use.
+- Remember that lock.acquire() has an argument called timeout.
+- philosophers need to eat for 3 to 5 seconds when they get both forks.  
+  When the number of philosophers has eaten MAX_MEALS times, stop the philosophers
+  from trying to eat and any philosophers eating will put down their forks when finished.
+- You want as many philosophers to eat and think concurrently.
+- Design your program to handle N philosophers.
+- Use threads for this problem.
+- When you get your program working, how to you prove that no philosopher will starve?
+  (Just looking at output from print() statements is not enough)
+- Are the philosophers each eating and thinking the same amount?
+- Using lists for philosophers and forks will help you in this program.
+  for example: philosophers[i] needs forks[i] and forks[i+1] to eat
+
+
+"""
+import time
+import threading
+import requests
+import random
+
+
+PHILOSOPHERS = 5
+MAX_MEALS = PHILOSOPHERS * 5
+
+meals_eaten = 0
+meals_eaten_by_philo = [0] * PHILOSOPHERS
+
+def eat(philo_name, forks, philo_num, meal_count_lock):
+  global meals_eaten
+  while True: 
+    # acquire both forks
+    # when acquired:
+    print(f'{philo_name} acquiring, {forks[0][0]}')
+    forks[0][1].acquire(timeout=random.random() *.1)
+    print(f'{philo_name} acquiring {forks[1][0]}')
+    forks[1][1].acquire(timeout=(random.random() *.1))
+    time.sleep(random.random() * 2 + 3)
+    meals_eaten_by_philo[philo_num] += 1
+    # increment meals eaten, or decrement meals left
+    with meal_count_lock:
+      meals_eaten += 1
+    #done eating, release forks
+    print(f'{philo_name} releasing, {forks[0][0]}')
+    forks[0][1].release()
+    print(f'{philo_name} releasing {forks[1][0]}')
+    forks[1][1].release()
+    # exit condition: no more meals
+    if meals_eaten >= MAX_MEALS:
+      return
+    
+
+
+def main():
+    # TODO - create the forks
+    forks = []
+    for i in range(PHILOSOPHERS):
+      forks.append((f'fork {i}', threading.Lock()))
+    
+    fork_pairs = []
+    for i, fork in enumerate(forks):
+      pair = (fork, forks[(i + 1) % PHILOSOPHERS])
+      fork_pairs.append(pair)
+
+    # print(fork_pairs)
+    
+    # TODO - create PHILOSOPHERS philosophers
+    philosophers = []
+    names = []
+    
+    for i in range(PHILOSOPHERS):
+          url = f"https://philosophyapi.herokuapp.com/api/philosophers/{i+1}/"
+          resp = requests.get(url)
+          data = resp.json()
+    
+          if resp.status_code == 200:
+            names.append(data['name'])
+            
+    
+    meal_count_lock = threading.Lock()
+    for philo_num in range(PHILOSOPHERS):
+      philosophers.append(threading.Thread(target=eat, args=(names[philo_num], fork_pairs[philo_num], philo_num, meal_count_lock)))
+    
+    #) TODO - Start them eating and thinking
+    for philosopher in philosophers:
+      philosopher.start()
+      
+    # TODO - Display how many times each philosopher ate
+    for philosopher in philosophers:
+      philosopher.join()
+      
+    for i, philosopher_meal_count in enumerate(meals_eaten_by_philo):
+      print(f'{names[i]} ate {philosopher_meal_count} meals.') 
+
+if __name__ == '__main__':
+  main()
