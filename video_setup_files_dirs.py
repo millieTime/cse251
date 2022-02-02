@@ -23,7 +23,7 @@ def main():
     if do_rickroll == 'y':
         if not os.path.exists('resources/rickroll.mp4'):
             print('No rickroll file found, download one from https://ir.stonybrook.edu/xmlui/bitstream/handle/11401/9656/rickroll.mp4')
-            print("Then run the following command: ./ffmpeg -i rickroll.mp4 -vf scale=1280:720 rickroll.mp4")
+            print("Then run the following command: ffmpeg -i rickroll.mp4 -vf scale=1280:720 rickroll.mp4")
             return
         else:
             create_dir('resources/rickroll')
